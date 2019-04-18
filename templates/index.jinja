@@ -25,18 +25,49 @@ var map = new mapboxgl.Map({
 });
 
 map.on('load', function () {
+    map.addSource('restaurant-data',
+    {
+        type: 'geojson',
+        data: {
+            "type": "FeatureCollection",
+            "features": {{ restaurant_data|tojson|safe }}
+        }
+    });
+    map.addLayer({
+        'id': 'population',
+        'type': 'circle',
+        'source': 'restaurant-data',
+        'paint': {
+        // make circles larger as the user zooms from z12 to z22
+            'circle-radius': {
+            'base': 1.75,
+            'stops': [[12, 2], [22, 180]]
+            },
+            // color circles by ethnicity, using a match expression
+            // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+            'circle-color': [
+                'match',
+                ['get', 'rating'],
+                0, '#0c0887', // blue
+                1, '#0c0887', // blue
+                2, '#0c0887', // blue
+                3, '#4b03a1', // purple-blue
+                4, '#7d03a8', // purple
+                5, '#a82296', // purple
+                6, '#cb4679', // magenta
+                7, '#e56b5d', // red
+                8, '#f89441', // orange
+                9, '#fdc328', // orange
+                10, '#f0f921', // yellow
+		        /* other */ '#0c0887' // blue
+            ]
+        }
+    });
     map.addLayer({
         "id": "points",
         "type": "symbol",
-        "source": {
-            "type": "geojson",
-            "data": {
-                "type": "FeatureCollection",
-                "features": {{ data|tojson|safe }}
-            }
-        },
+        "source": "restaurant-data",
         "layout": {
-            "icon-image": "{icon}-15",
             "text-field": "{title}",
             "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
             "text-offset": [0, 0.6],

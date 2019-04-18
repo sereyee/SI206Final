@@ -61,33 +61,25 @@ class Yelp:
         conn.close()
 
     def load_data(self):
+        def dict_factory(cursor, row):
+            d = {}
+            for idx, col in enumerate(cursor.description):
+                d[col[0]] = row[idx]
+            return d
+
         conn = sqlite3.connect(self.database)
-        conn.row_factory = sqlite3.Row
+        conn.row_factory = dict_factory
         c = conn.cursor()
         c.execute("SELECT * from yelp;")
         self.data = c.fetchall()
         conn.close()
 
-    def data_to_mapbox_json(self):
-        coords_list = [
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [restaurant["longitude"], restaurant["latitude"]]
-                },
-                "properties": {
-                    "title": restaurant['name'],
-                    # "icon": "monument"
-                }
-            }
-            for restaurant in self.data
-        ]
+    def data_to_json(self):
         with open('data.json', 'w') as f:
-            json.dump(coords_list, f)
+            json.dump(self.data, f)
 
 if __name__ == '__main__':
     yelp = Yelp()
     yelp.fetch_data()
     yelp.load_data()
-    yelp.data_to_mapbox_json()
+    yelp.data_to_json()
