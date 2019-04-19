@@ -85,6 +85,14 @@ map.on('load', function () {
             "features": {{ dpss_data|tojson|safe }}
         }
     });
+    map.addSource('mprint-data',
+    {
+        type: 'geojson',
+        data: {
+            "type": "FeatureCollection",
+            "features": {{ mprint_data|tojson|safe }}
+        }
+    });
     map.addLayer({
         'id': 'yelp-points',
         'type': 'circle',
@@ -152,11 +160,44 @@ map.on('load', function () {
             "text-anchor": "top"
         }
     });
+    map.addLayer({
+        'id': 'mprint-points',
+        'type': 'circle',
+        'source': 'mprint-data',
+        'paint': {
+        // make circles larger as the user zooms from z12 to z22
+            'circle-radius': {
+            'base': 1.75,
+            'stops': [[12, 2], [22, 180]]
+            },
+            // color circles by ethnicity, using a match expression
+            // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+            'circle-color': {
+                property: 'printers',
+                stops: [
+                [0, '#f1f075'],
+                [110, '#e55e5e']
+                ]
+            }
+        }
+    });
+    map.addLayer({
+        "id": "mprint-labels",
+        "type": "symbol",
+        "source": "mprint-data",
+        "layout": {
+            "text-field": "{name}",
+            "text-font": ["Arial Unicode MS Bold"],
+            "text-offset": [0, 0.6],
+            "text-anchor": "top"
+        }
+    });
 });
 
-var toggleableLayerIds = [ 'yelp', 'dpss' ];
+var toggleableLayerIds = [ 'yelp', 'dpss', 'mprint'];
 var yelpLayers =['yelp-points', 'yelp-labels'];
 var dpssLayers = ['dpss-points', 'dpss-labels'];
+var mprintLayers = ['mprint-points', 'mprint-labels'];
 
 for (var i = 0; i < toggleableLayerIds.length; i++) {
 var id = toggleableLayerIds[i];
@@ -187,6 +228,19 @@ link.onclick = function (e) {
     } else if (clickedLayer == 'dpss') {
         for (var j = 0; j < dpssLayers.length; j++)  {
             var layer = dpssLayers[j];
+            var visibility = map.getLayoutProperty(layer, 'visibility');
+                        
+            if (visibility === 'visible') {
+            map.setLayoutProperty(layer, 'visibility', 'none');
+            this.className = '';
+            } else {
+            this.className = 'active';
+            map.setLayoutProperty(layer, 'visibility', 'visible');
+            }
+        }
+    } else if (clickedLayer == 'mprint') {
+        for (var j = 0; j < mprintLayers.length; j++)  {
+            var layer = mprintLayers[j];
             var visibility = map.getLayoutProperty(layer, 'visibility');
                         
             if (visibility === 'visible') {
