@@ -1,2 +1,2 @@
-web: gunicorn index:app
 release: python yelp.py
+web: gunicorn index:app --log-file -

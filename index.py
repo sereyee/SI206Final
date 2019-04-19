@@ -23,6 +23,3 @@ def index():
         ]
 
     return render_template('index.jinja', restaurant_data=coords_list)
-
-if __name__ == '__main__':
-    app.run()
