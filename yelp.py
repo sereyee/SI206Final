@@ -75,7 +75,7 @@ class Yelp:
         conn.close()
 
     def data_to_json(self):
-        with open('data.json', 'w') as f:
+        with open('yelp.json', 'w') as f:
             json.dump(self.data, f)
 
 if __name__ == '__main__':

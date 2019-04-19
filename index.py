@@ -4,10 +4,12 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    with open('data.json') as f:
-        data = json.load(f)
+    with open('yelp.json') as f:
+        yelp_data = json.load(f)
+    with open('dpss.json') as f:
+        dpss_data = json.load(f)
 
-    coords_list = [
+    yelp_coords_list = [
             {
                 "type": "Feature",
                 "geometry": {
@@ -19,7 +21,21 @@ def index():
                     "rating": int(restaurant["rating"]*2)
                 }
             }
-            for restaurant in data
+            for restaurant in yelp_data
+        ]
+    dpss_coords_list = [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [crime["longitude"], crime["latitude"]]
+                },
+                "properties": {
+                    "description": crime['description']
+                    # "rating": int(restaurant["rating"]*2)
+                }
+            }
+            for crime in dpss_data
         ]
 
-    return render_template('index.jinja', restaurant_data=coords_list)
+    return render_template('index.jinja', yelp_data=yelp_coords_list, dpss_data=dpss_coords_list)

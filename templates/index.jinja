@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset='utf-8' />
-    <title>Draw GeoJSON points</title>
+    <title>Ann Arbor Maps</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet' />
@@ -12,7 +12,51 @@
     </style>
 </head>
 <body>
-
+<style>
+    #menu {
+        background: #fff;
+        position: absolute;
+        z-index: 1;
+        top: 10px;
+        right: 10px;
+        border-radius: 3px;
+        width: 120px;
+        border: 1px solid rgba(0,0,0,0.4);
+        font-family: 'Open Sans', sans-serif;
+    }
+    
+    #menu a {
+        font-size: 13px;
+        color: #404040;
+        display: block;
+        margin: 0;
+        padding: 0;
+        padding: 10px;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(0,0,0,0.25);
+        text-align: center;
+    }
+    
+    #menu a:last-child {
+        
+    }
+    
+    #menu a:hover {
+        background-color: #f8f8f8;
+        color: #404040;
+    }
+    
+    #menu a.active {
+        background-color: #3887be;
+        color: #ffffff;
+    }
+    
+    #menu a.active:hover {
+        background: #3074a4;
+    }
+</style>
+ 
+<nav id="menu"></nav>
 <div id='map'></div>
 <script>
 
@@ -25,18 +69,26 @@ var map = new mapboxgl.Map({
 });
 
 map.on('load', function () {
-    map.addSource('restaurant-data',
+    map.addSource('yelp-data',
     {
         type: 'geojson',
         data: {
             "type": "FeatureCollection",
-            "features": {{ restaurant_data|tojson|safe }}
+            "features": {{ yelp_data|tojson|safe }}
+        }
+    });
+    map.addSource('dpss-data',
+    {
+        type: 'geojson',
+        data: {
+            "type": "FeatureCollection",
+            "features": {{ dpss_data|tojson|safe }}
         }
     });
     map.addLayer({
-        'id': 'population',
+        'id': 'yelp-points',
         'type': 'circle',
-        'source': 'restaurant-data',
+        'source': 'yelp-data',
         'paint': {
         // make circles larger as the user zooms from z12 to z22
             'circle-radius': {
@@ -64,9 +116,9 @@ map.on('load', function () {
         }
     });
     map.addLayer({
-        "id": "points",
+        "id": "yelp-labels",
         "type": "symbol",
-        "source": "restaurant-data",
+        "source": "yelp-data",
         "layout": {
             "text-field": "{title}",
             "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
@@ -74,7 +126,68 @@ map.on('load', function () {
             "text-anchor": "top"
         }
     });
+    map.addLayer({
+        "id": "dpss-labels",
+        "type": "symbol",
+        "source": "dpss-data",
+        "layout": {
+            "text-field": "{description}",
+            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-offset": [0, 0.6],
+            "text-anchor": "top"
+        }
+    });
 });
+
+var toggleableLayerIds = [ 'yelp', 'dpss' ];
+var yelpLayers =['yelp-points', 'yelp-labels'];
+var dpssLayers = ['dpss-labels'];
+
+for (var i = 0; i < toggleableLayerIds.length; i++) {
+var id = toggleableLayerIds[i];
+ 
+var link = document.createElement('a');
+link.href = '#';
+link.className = 'active';
+link.textContent = id;
+ 
+link.onclick = function (e) {
+    var clickedLayer = this.textContent;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (clickedLayer == 'yelp') {
+        for (var j = 0; j < yelpLayers.length; j++) {
+            var layer = yelpLayers[j];
+            var visibility = map.getLayoutProperty(layer, 'visibility');
+                        
+            if (visibility === 'visible') {
+            map.setLayoutProperty(layer, 'visibility', 'none');
+            this.className = '';
+            } else {
+            this.className = 'active';
+            map.setLayoutProperty(layer, 'visibility', 'visible');
+            }
+        }
+    } else if (clickedLayer == 'dpss') {
+        for (var j = 0; j < dpssLayers.length; j++)  {
+            var layer = dpssLayers[j];
+            var visibility = map.getLayoutProperty(layer, 'visibility');
+                        
+            if (visibility === 'visible') {
+            map.setLayoutProperty(layer, 'visibility', 'none');
+            this.className = '';
+            } else {
+            this.className = 'active';
+            map.setLayoutProperty(layer, 'visibility', 'visible');
+            }
+        }
+    }
+};
+ 
+var layers = document.getElementById('menu');
+layers.appendChild(link);
+}
 </script>
 
 </body>
