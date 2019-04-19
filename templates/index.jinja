@@ -127,12 +127,27 @@ map.on('load', function () {
         }
     });
     map.addLayer({
+        'id': 'dpss-points',
+        'type': 'circle',
+        'source': 'dpss-data',
+        'paint': {
+        // make circles larger as the user zooms from z12 to z22
+            'circle-radius': {
+            'base': 1.75,
+            'stops': [[12, 2], [22, 180]]
+            },
+            // color circles by ethnicity, using a match expression
+            // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+            'circle-color': "#00ffff"
+        }
+    });
+    map.addLayer({
         "id": "dpss-labels",
         "type": "symbol",
         "source": "dpss-data",
         "layout": {
             "text-field": "{description}",
-            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-font": ["Arial Unicode MS Bold"],
             "text-offset": [0, 0.6],
             "text-anchor": "top"
         }
@@ -141,7 +156,7 @@ map.on('load', function () {
 
 var toggleableLayerIds = [ 'yelp', 'dpss' ];
 var yelpLayers =['yelp-points', 'yelp-labels'];
-var dpssLayers = ['dpss-labels'];
+var dpssLayers = ['dpss-points', 'dpss-labels'];
 
 for (var i = 0; i < toggleableLayerIds.length; i++) {
 var id = toggleableLayerIds[i];
