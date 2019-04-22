@@ -158,22 +158,22 @@ class MPrint():
         if self.data is None:
             self.load_data()
         
-        self.building_printer_count = defaultdict(int)
+        building_printer_count = defaultdict(int)
         for row in self.data:
-            self.building_printer_count[row['building_id']] += 1
-        
-        self.building_data = list()
+            building_printer_count[row['building_id']] += 1
+
+        building_data = list()
         for row in self.data:
-            self.building_data.append({
+            building_data.append({
                 'id': row['building_id'],
                 'name': row['building_name'],
                 'address': row['building_address'],
                 'latitude': row['latitude'],
                 'longitude': row['longitude'],
-                'printers': self.building_printer_count[row['building_id']]
+                'printers': building_printer_count[row['building_id']]
             })
 
-        self.data_to_json(self.building_data)
+        self.data_to_json(building_data)
     
     def data_to_json(self, data=None):
         with open('mprint.json', 'w') as f:

@@ -127,8 +127,9 @@ map.on('load', function () {
         "id": "yelp-labels",
         "type": "symbol",
         "source": "yelp-data",
+        "minzoom": 15,
         "layout": {
-            "text-field": "{title}",
+            "text-field": "{title}: {orig-rating}",
             "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
             "text-offset": [0, 0.6],
             "text-anchor": "top"
@@ -138,6 +139,9 @@ map.on('load', function () {
         'id': 'dpss-points',
         'type': 'circle',
         'source': 'dpss-data',
+        'layout': {
+            'visibility': 'none',
+        },
         'paint': {
         // make circles larger as the user zooms from z12 to z22
             'circle-radius': {
@@ -146,24 +150,45 @@ map.on('load', function () {
             },
             // color circles by ethnicity, using a match expression
             // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
-            'circle-color': "#00ffff"
+            'circle-color': {
+                property: 'count',
+                stops: [
+                [0.0, '#0c0887'], // blue
+                [0.5, '#0c0887'], // blue
+                [1.0, '#0c0887'], // blue
+                [1.5, '#4b03a1'], // purple-blue
+                [2.0, '#7d03a8'], // purple
+                [2.5, '#a82296'], // purple
+                [3.0, '#cb4679'], // magenta
+                [3.5, '#e56b5d'], // red
+                [4.0, '#f89441'], // orange
+                [4.5, '#fdc328'], // orange
+                [5.0, '#f0f921'], // yellow
+                ]
+            }
         }
     });
     map.addLayer({
         "id": "dpss-labels",
         "type": "symbol",
         "source": "dpss-data",
+        "minzoom": 15,
         "layout": {
-            "text-field": "{description}",
+            "text-field": "{address}",
             "text-font": ["Arial Unicode MS Bold"],
             "text-offset": [0, 0.6],
-            "text-anchor": "top"
+            "text-anchor": "top",
+            "visibility": "none"
         }
     });
     map.addLayer({
         'id': 'mprint-points',
         'type': 'circle',
+        'visibility': 'none',
         'source': 'mprint-data',
+        'layout': {
+            'visibility': 'none',
+        },
         'paint': {
         // make circles larger as the user zooms from z12 to z22
             'circle-radius': {
@@ -175,8 +200,17 @@ map.on('load', function () {
             'circle-color': {
                 property: 'printers',
                 stops: [
-                [0, '#f1f075'],
-                [110, '#e55e5e']
+                [0.0, '#0c0887'], // blue
+                [0.5, '#0c0887'], // blue
+                [1.0, '#0c0887'], // blue
+                [1.5, '#4b03a1'], // purple-blue
+                [2.0, '#7d03a8'], // purple
+                [2.5, '#a82296'], // purple
+                [3.0, '#cb4679'], // magenta
+                [3.5, '#e56b5d'], // red
+                [4.0, '#f89441'], // orange
+                [4.5, '#fdc328'], // orange
+                [5.0, '#f0f921'], // yellow
                 ]
             }
         }
@@ -185,11 +219,13 @@ map.on('load', function () {
         "id": "mprint-labels",
         "type": "symbol",
         "source": "mprint-data",
+        "minzoom": 15,
         "layout": {
             "text-field": "{name}",
             "text-font": ["Arial Unicode MS Bold"],
             "text-offset": [0, 0.6],
-            "text-anchor": "top"
+            "text-anchor": "top",
+            "visibility": "none"
         }
     });
 });
@@ -198,64 +234,42 @@ var toggleableLayerIds = [ 'yelp', 'dpss', 'mprint'];
 var yelpLayers =['yelp-points', 'yelp-labels'];
 var dpssLayers = ['dpss-points', 'dpss-labels'];
 var mprintLayers = ['mprint-points', 'mprint-labels'];
+var layerArr = [yelpLayers, dpssLayers, mprintLayers];
 
 for (var i = 0; i < toggleableLayerIds.length; i++) {
-var id = toggleableLayerIds[i];
- 
-var link = document.createElement('a');
-link.href = '#';
-link.className = 'active';
-link.textContent = id;
- 
-link.onclick = function (e) {
-    var clickedLayer = this.textContent;
-    e.preventDefault();
-    e.stopPropagation();
+    var id = toggleableLayerIds[i];
     
-    if (clickedLayer == 'yelp') {
-        for (var j = 0; j < yelpLayers.length; j++) {
-            var layer = yelpLayers[j];
-            var visibility = map.getLayoutProperty(layer, 'visibility');
-                        
-            if (visibility === 'visible') {
-            map.setLayoutProperty(layer, 'visibility', 'none');
-            this.className = '';
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = (i == 0 ? 'active' : '');
+    link.textContent = id;
+
+    link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+        var showIndex = toggleableLayerIds.indexOf(clickedLayer);
+        var links = document.getElementById('menu').getElementsByTagName('a');
+
+        for (var j = 0; j < links.length; j++) {
+            var otherLink = links[j];
+            if (this == otherLink) {
+                this.className = 'active';
             } else {
-            this.className = 'active';
-            map.setLayoutProperty(layer, 'visibility', 'visible');
+                otherLink.className = '';
             }
         }
-    } else if (clickedLayer == 'dpss') {
-        for (var j = 0; j < dpssLayers.length; j++)  {
-            var layer = dpssLayers[j];
-            var visibility = map.getLayoutProperty(layer, 'visibility');
-                        
-            if (visibility === 'visible') {
-            map.setLayoutProperty(layer, 'visibility', 'none');
-            this.className = '';
-            } else {
-            this.className = 'active';
-            map.setLayoutProperty(layer, 'visibility', 'visible');
+        for (var j = 0; j < layerArr.length; j++) {
+            for (var k = 0; k < layerArr[j].length; k++) {
+                var layer = layerArr[j][k];
+                var visibility = map.getLayoutProperty(layer, 'visibility');
+                map.setLayoutProperty(layer, 'visibility', (j == showIndex ? 'visible': 'none'));
             }
         }
-    } else if (clickedLayer == 'mprint') {
-        for (var j = 0; j < mprintLayers.length; j++)  {
-            var layer = mprintLayers[j];
-            var visibility = map.getLayoutProperty(layer, 'visibility');
-                        
-            if (visibility === 'visible') {
-            map.setLayoutProperty(layer, 'visibility', 'none');
-            this.className = '';
-            } else {
-            this.className = 'active';
-            map.setLayoutProperty(layer, 'visibility', 'visible');
-            }
-        }
-    }
-};
+    };
  
-var layers = document.getElementById('menu');
-layers.appendChild(link);
+    var layers = document.getElementById('menu');
+    layers.appendChild(link);
 }
 </script>
 

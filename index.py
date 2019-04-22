@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import json
+import math
 app = Flask(__name__)
 
 @app.route('/')
@@ -20,7 +21,8 @@ def index():
                 },
                 "properties": {
                     "title": restaurant['name'],
-                    "rating": int(restaurant["rating"]*2)
+                    "rating": int(restaurant["rating"]*2),
+                    "orig-rating": restaurant["rating"]
                 }
             }
             for restaurant in yelp_data
@@ -33,8 +35,8 @@ def index():
                     "coordinates": [crime["longitude"], crime["latitude"]]
                 },
                 "properties": {
-                    "description": crime['description']
-                    # "rating": int(restaurant["rating"]*2)
+                    "address": crime['address'],
+                    "count": math.log(crime['count'])
                 }
             }
             for crime in dpss_data
@@ -48,7 +50,7 @@ def index():
                 },
                 "properties": {
                     "name": building['name'],
-                    "printers": building['printers']
+                    "printers": math.log(building['printers'])
                 }
             }
             for building in mprint_data

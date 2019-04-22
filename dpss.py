@@ -2,6 +2,7 @@ import requests
 import sqlite3
 import json
 from datetime import timedelta, date
+from collections import defaultdict
 
 
 def date_range(start_date, end_date):
@@ -13,8 +14,8 @@ class DPSS:
         self.url = "https://dpss.umich.edu/api/GetCrimeLogCache"
         self.database = 'db.sqlite'
         self.data = None
-        self.start_date = date(2019, 3, 1)
-        self.end_date = date(2019, 4, 1)
+        self.start_date = date(2019, 1, 1)
+        self.end_date = date(2019, 4, 20)
 
     def fetch_data(self):
         conn = sqlite3.connect(self.database)
@@ -47,6 +48,9 @@ class DPSS:
                 if c.execute("SELECT EXISTS( SELECT 1 FROM dpss WHERE id = ? );", (crime['id'],)).fetchone()[0]:
                     continue
 
+                if 'latitude' not in crime or 'longitude' not in crime:
+                    continue
+
                 c.execute(
                     "INSERT INTO dpss (id, date, description, location, address, latitude, longitude) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?);",
@@ -72,13 +76,16 @@ class DPSS:
         conn = sqlite3.connect(self.database)
         conn.row_factory = dict_factory
         c = conn.cursor()
-        c.execute("SELECT * from dpss;")
+        c.execute("SELECT address, latitude, longitude, count(*) AS `count` FROM dpss GROUP BY address;")
         self.data = c.fetchall()
         conn.close()
     
-    def data_to_json(self):
+    def data_to_json(self, data=None):
         with open('dpss.json', 'w') as f:
-            json.dump(self.data, f)
+            if data is None:
+                json.dump(self.data, f)
+            else:
+                json.dump(data, f)
 
 if __name__ == '__main__':
     dpss = DPSS()
