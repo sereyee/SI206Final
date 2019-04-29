@@ -6,6 +6,7 @@ class Yelp:
     def __init__(self):
         self.database = 'db.sqlite'
         self.data = None
+        self.calculation = None 
     
     def fetch_data(self):
         conn = sqlite3.connect(self.database)
@@ -72,14 +73,21 @@ class Yelp:
         c = conn.cursor()
         c.execute("SELECT * from yelp;")
         self.data = c.fetchall()
+        c.execute("SELECT avg(latitude), avg(longitude) AS `average_latitude`, `average_longitude` FROM yelp;")
+        self.calculation = c.fetchall()
         conn.close()
 
     def data_to_json(self):
         with open('yelp.json', 'w') as f:
             json.dump(self.data, f)
 
+    def data_to_json_two(self):
+        with open('yelp_calc.json', 'w') as f:
+            json.dump(self.calculation, f)
+
 if __name__ == '__main__':
     yelp = Yelp()
     yelp.fetch_data()
     yelp.load_data()
     yelp.data_to_json()
+    yelp.data_to_json_two()
