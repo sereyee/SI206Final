@@ -3,6 +3,8 @@ import sqlite3
 import json
 from datetime import timedelta, date
 from collections import defaultdict
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def date_range(start_date, end_date):
@@ -15,7 +17,7 @@ class DPSS:
         self.database = 'db.sqlite'
         self.data = None
         self.start_date = date(2019, 1, 1)
-        self.end_date = date(2019, 4, 20)
+        self.end_date = date(2019, 1, 10)
 
     def fetch_data(self):
         conn = sqlite3.connect(self.database)
@@ -87,8 +89,25 @@ class DPSS:
             else:
                 json.dump(data, f)
 
+    def data_viz(self):
+        self.label = []
+        self.crime_rates = []
+        for row in self.data:
+            self.label.append(row['address'])
+            self.crime_rates.append(row['count'])
+
+        index = np.arange(len(self.label))
+        plt.bar(index, self.crime_rates)
+        plt.xlabel('Crime Locations in the Past 10 Days', fontsize = 10)
+        plt.ylabel('Crime Rates Per Location', fontsize = 10)
+        plt.xticks(index, self.label, fontsize = 5, rotation = 30)
+        plt.title('DPSS Data on Ann Arbor from 01/01/2019-01/10/2019')
+        plt.show()
+
+
 if __name__ == '__main__':
     dpss = DPSS()
     dpss.fetch_data()
     dpss.load_data()
     dpss.data_to_json()
+    dpss.data_viz()
