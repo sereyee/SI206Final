@@ -73,7 +73,7 @@ class Yelp:
         c = conn.cursor()
         c.execute("SELECT * from yelp;")
         self.data = c.fetchall()
-        c.execute("SELECT avg(latitude), avg(longitude) AS `average_latitude`, `average_longitude` FROM yelp;")
+        c.execute("SELECT avg(latitude), avg(longitude) FROM yelp;")
         self.calculation = c.fetchall()
         conn.close()
 
